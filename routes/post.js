@@ -36,23 +36,23 @@ router.post('/img', isLoggedIn, upload.single('img'), (req, res) => {   //multer
 const upload2 = multer();
 router.post('/', isLoggedIn, upload2.none(), async (req, res, next) => {
     try {
-        console.log(req.user);
+        console.log('post', req.user);
         const post = await Post.create({
             content: req.body.content,
             img: req.body.url,
             UserId: req.user.id,
         });
-        // const hashtags = req.body.content.match(/#[^\s#]*/g);
-        // if (hashtags) {
-        //   const result = await Promise.all(
-        //     hashtags.map(tag => {
-        //       return Hashtag.findOrCreate({
-        //         where: { title: tag.slice(1).toLowerCase() },
-        //       })
-        //     }),
-        //   );
-        //   await post.addHashtags(result.map(r => r[0]));
-        // }
+        const hashtags = new Set(req.body.content.match(/#[^\s#]*/g));
+        if (hashtags) {
+            const result = await Promise.all(   //findOrCreate 같은 함수는 Promise이므로 해당 객체에 모두 await을 적용하기 위해 Promise.all()
+                Array.from(hashtags, tag => {
+                    return Hashtag.findOrCreate({   //findOrCreate는 이차원배열로 결과 나옴. [[data, true],[data, true],[data, false]] false면 이미 있어서 디비에서 찾은 것.
+                        where: { title: tag.slice(1).toLowerCase() },
+                    })
+                })
+            );
+            await post.addHashtags(result.map(r => r[0]));  //add~~ 함수에는 id 또는 그 모델의 객체를 넣을 수 있음. 그러면 시퀄라이즈가 알아서 디비에 넣음.
+        }
         res.redirect('/');
     } catch (error) {
         console.error(error);

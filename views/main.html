@@ -25,6 +25,9 @@
           <input type="text" name="hashtag" placeholder="태그 검색">
           <button class="btn">검색</button>
         </form>
+        {% if twits === '검색결과 없음' %}
+        <div>{{twits}}</div>
+        {% else %}
         {% for twit in twits %}
           <div class="twit">
             <input type="hidden" value="{{twit.User.id}}" class="twit-user-id">
@@ -39,6 +42,7 @@
             {% endif %}
           </div>
         {% endfor %}
+        {% endif %}
       </div>
     </div>
 {% endblock %}
